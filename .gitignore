@@ -1,0 +1,8 @@
+# phpstorm project files
+.idea
+
+# environment file
+.env
+
+# docker data
+/docker/data/*
