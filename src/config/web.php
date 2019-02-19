@@ -7,6 +7,7 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'name' => 'Gootax Project',
+    'language' => 'ru-RU',
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
@@ -18,6 +19,10 @@ $config = [
             'cookieValidationKey' => 'qIQO55UEM484TxojqjXPO_Kpbyeq3cXI',
             'baseUrl' => '',
 
+        ],
+        'session'=>[
+            'class' => 'yii\web\Session',
+            'timeout'=>3600*2,
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -50,6 +55,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                '<action>' => 'site/<action>',
             ],
         ],
         'formatter' => [
@@ -58,6 +64,11 @@ $config = [
             'dateFormat' => 'd MMMM yyyy',
             'datetimeFormat' => 'd-M-Y H:i:s',
             'timeFormat' => 'H:i:s',
+        ],
+    ],
+    'modules' => [
+        'cities' => [
+            'class' => 'app\modules\cities\Module',
         ],
     ],
     'params' => $params,
@@ -76,7 +87,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['192.168.99.1', '::1'],
     ];
 }
 

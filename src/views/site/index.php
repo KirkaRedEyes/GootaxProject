@@ -1,8 +1,8 @@
 <?php
-
 /* @var $this yii\web\View */
+/* @var array $allCities все города */
 
-$this->title = 'My Yii Application';
+$this->title = 'Gootax Project';
 ?>
 <div class="site-index">
 

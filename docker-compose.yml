@@ -4,6 +4,7 @@ services:
 
   php:
     container_name: gtx_php
+#    image: yiisoftware/yii2-php:7.1-apache
     image: yiisoftware/yii2-php:5.6-apache
     restart: 'always'
     ports:

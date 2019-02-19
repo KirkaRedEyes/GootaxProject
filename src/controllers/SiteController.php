@@ -38,6 +38,27 @@ class SiteController extends Controller
         ];
     }
 
+
+    /**
+     * {@inheritdoc}
+     */
+    public function beforeAction($action) {
+        if ($action->id === 'index')
+            return parent::beforeAction($action);
+
+        if (!Yii::$app->session->has('city'))
+            return $this->redirect(['/']);
+
+        return parent::beforeAction($action);
+    }
+
+//    public function beforeAction($action) {
+//        if ($action == 'redirect') {
+//            $this->enableCsrfValidation = false;
+//        }
+//        return parent::beforeAction($action);
+//    }
+
     /**
      * {@inheritdoc}
      */
@@ -61,8 +82,31 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        if (!Yii::$app->session->has('city'))
+            return $this->redirect(['/cities/main']);
+
         return $this->render('index');
     }
+
+
+    /**
+     * Displays homepage.
+     *
+     * @return boolean
+     */
+//    public function actionCity()
+//    {
+//        $geo = new Geo;
+//
+//        $city = Yii::$app->request->post('city');
+//        if (isset($city))
+//            if (strpos(file_get_contents('../utils/geoip/russian_cities.txt'), $city)) {
+//                $geo->saveCity($city);
+//                return true;
+//            }
+//
+//        return false;
+//    }
 
     /**
      * Login action.
