@@ -1,7 +1,7 @@
 <?php
 /* @var $this yii\web\View */
 /* @var string $city город пользователя */
-/* @var array $allCities все города */
+/* @var array $allCities города хранящиеся в базе данных */
 
 use kartik\select2\Select2;
 
@@ -25,13 +25,14 @@ $this->title = 'Определение города';
     <?= Select2::widget([
         'name' => 'kv_lang_select1',
         'language' => 'ru',
-        'data' => $allCities,
+        'data' =>Yii::$app->cache->get(Yii::$app->params['nameCacheCities']),
+        'showToggleAll' => false,
         'options' => [
             'placeholder' => 'Выберите город ...',
             'class' => ['select-city'],
         ],
         'pluginOptions' => [
-            'allowClear' => true,
+            'minimumInputLength' => 1,
         ],
     ]);?>
 </div>

@@ -2,6 +2,7 @@
 
 /* @var $this \yii\web\View */
 /* @var $content string */
+/* @var array $this->params['allCities'] города хранящиеся в базе данных */
 
 use app\widgets\Alert;
 use yii\helpers\Html;
@@ -9,6 +10,7 @@ use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
+use kartik\select2\Select2;
 
 AppAsset::register($this);
 ?>
@@ -28,6 +30,10 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
+    $session = Yii::$app->session;
+    $nameCacheCities = Yii::$app->params['nameCacheCities'];
+    $city = Yii::$app->params['nameSessionCity'];
+
     NavBar::begin([
         'brandLabel' => Yii::$app->name,
         'brandUrl' => Yii::$app->homeUrl,
@@ -35,26 +41,43 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    if (!empty($_SESSION['city'])) {
+
+    if ($session->has($city)) {
+        echo Html::beginTag('div', ['style' => 'width: 200px; display: inline-block; margin-top: 9px;']);
+            echo Select2::widget([
+                'name' => 'select_city',
+                'language' => 'ru',
+                'data' => Yii::$app->cache->get($nameCacheCities),
+                'value' => $session->get($city),
+                'size' => Select2::SMALL,
+                'showToggleAll' => false,
+                'options' => [
+                    'placeholder' => 'Выберите город ...',
+                    'class' => ['select-city'],
+                ],
+                'pluginOptions' => [
+                    'minimumInputLength' => 2,
+                ],
+            ]);
+        echo Html::endTag('div');
+
         echo Nav::widget([
             'options' => ['class' => 'navbar-nav navbar-right'],
-            'items' => [
-                ['label' => 'Home', 'url' => ['/site/index']],
-                ['label' => 'About', 'url' => ['/site/about']],
-                ['label' => 'Contact', 'url' => ['/site/contact']],
-                Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
-                ) : (
-                    '<li>'
-                    . Html::beginForm(['/site/logout'], 'post')
-                    . Html::submitButton(
-                        'Logout (' . Yii::$app->user->identity->username . ')',
-                        ['class' => 'btn btn-link logout']
-                    )
-                    . Html::endForm()
-                    . '</li>'
-                )
-            ],
+            'items' => //Yii::$app->user->isGuest
+                //? [['label' => 'Войти', 'url' => ['#']]]
+                //: [
+                [
+                    '<li><button type="button" class="create-feedback">Оставить отзыв</button></li>',
+                    ['label' => 'Мои отзывы', 'url' => ['#']],
+//                    '<li>'
+//                    . Html::beginForm(['#'], 'post')
+//                    . Html::submitButton(
+//                        'Выйти (' . Yii::$app->user->identity->username . ')',
+//                        ['class' => 'btn btn-link logout']
+//                    )
+//                    . Html::endForm()
+//                    . '</li>'
+                ],
         ]);
     }
     NavBar::end();

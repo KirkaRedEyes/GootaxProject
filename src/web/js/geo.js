@@ -1,4 +1,4 @@
-window.onload = function() {
+$(function() {
     /* Если пользователь нажал "Нет" */
     $('.btn-no').on('click', function () {
        $('#layer').hide();
@@ -11,15 +11,15 @@ window.onload = function() {
 
     /* После выбора города */
     $('.select-city').on('change', function () {
-        ajaxCity($(this).find(':selected').val());
+        var selectCity = $(this).find(':selected');
+        ajaxCity(selectCity.text(), selectCity.val());
     });
 
     /* Сохраняем город в сессию и перезагружаем страницу */
-    function ajaxCity ($city) {
-        $.post('/cities/main/save-city', {
-            city: $city
-        }, function (res) {
-            if (res) window.location.href = '/';
+    function ajaxCity (city, idCity) {
+        $.post('/cities/main/save-city?city=' + city + '&idCity=' + idCity,
+            function (res) {
+                if (res) window.location.href = '/';
         });
     }
-};
+});

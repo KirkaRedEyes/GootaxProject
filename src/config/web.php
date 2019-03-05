@@ -11,7 +11,7 @@ $config = [
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'components' => [
         'request' => [
@@ -20,9 +20,9 @@ $config = [
             'baseUrl' => '',
 
         ],
-        'session'=>[
+        'session' => [
             'class' => 'yii\web\Session',
-            'timeout'=>3600*2,
+            'timeout' => 3600 * 2,
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -60,7 +60,6 @@ $config = [
         ],
         'formatter' => [
             'class' => 'yii\i18n\Formatter',
-            'timeZone' => 'GMT+4',
             'dateFormat' => 'd MMMM yyyy',
             'datetimeFormat' => 'd-M-Y H:i:s',
             'timeFormat' => 'H:i:s',
@@ -70,7 +69,30 @@ $config = [
         'cities' => [
             'class' => 'app\modules\cities\Module',
         ],
+        'reviews' => [
+            'class' => 'app\modules\reviews\Module',
+        ],
     ],
+    'on beforeAction' => function ($event) {
+        /* Записываем города в кэш */
+        Yii::$app->cache->getOrSet(Yii::$app->params['nameCacheCities'], function () {
+            $tableCities = app\modules\cities\models\City::find()
+                ->select(['id', 'name'])
+                ->orderBy('name')
+                ->asArray()
+                ->all();
+            return yii\helpers\ArrayHelper::map($tableCities, 'id', 'name');
+        });
+
+        /* Если в сессии нет города перенаправляем на главную */
+        $city = Yii::$app->params['nameSessionCity'];
+        if (!Yii::$app->session->has($city)) {
+            if ($event->action->id !== 'index' &&
+                $event->action->controller->id !== 'site') {
+                Yii::$app->response->redirect(['/']);
+            }
+        }
+    },
     'params' => $params,
 ];
 

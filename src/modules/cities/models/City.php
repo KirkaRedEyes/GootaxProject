@@ -3,6 +3,7 @@
 namespace app\modules\cities\models;
 
 use Yii;
+use app\modules\reviews\models\Feedback;
 
 /**
  * This is the model class for table "city".
@@ -13,6 +14,17 @@ use Yii;
  */
 class City extends \yii\db\ActiveRecord
 {
+    /**
+     * Свзяь с таблицей 'feedback' через промежуточную таблицу 'city_feedback'
+     */
+    public function getReviews()
+    {
+        return $this->hasMany(Feedback::className(), ['id' => 'feedback_id'])
+            ->viaTable('city_feedback', ['city_id' => 'id'])
+            ->orderBy('date_create DESC');
+    }
+
+
     /**
      * {@inheritdoc}
      */
@@ -27,10 +39,20 @@ class City extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['date_create', 'name'], 'required'],
+            [['name'], 'required'],
             [['date_create'], 'integer'],
             [['name'], 'string', 'max' => 255],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function beforeSave($insert)
+    {
+        if ($insert) $this->date_create = time();
+
+        return parent::beforeSave($insert);
     }
 
     /**

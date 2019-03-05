@@ -4,9 +4,8 @@ namespace app\modules\cities\controllers;
 
 use Yii;
 use yii\web\Controller;
-use app\modules\cities\models\City;
+use yii\filters\VerbFilter;
 use app\modules\cities\geoip\Geo;
-
 
 /**
  * Default controller for the `cities` module
@@ -14,52 +13,58 @@ use app\modules\cities\geoip\Geo;
 class MainController extends Controller
 {
     /**
+     * {@inheritdoc}
+     */
+    public function behaviors()
+    {
+        return [
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'save-city' => ['post'],
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Получение города пользователя по IP
      *
-     * @return string|false
+     * @return string|boolean
      */
     public function actionIndex()
     {
         $geo = new Geo;
 
-        $allCities = [];
-        $tableCities = City::find()->select('name')->orderBy('name')->asArray()->all();
-        foreach ($tableCities as $k => $arrCity)
-            $allCities[$arrCity['name']] = $arrCity['name'];
-
-        unset($tableCities);
-
-        if (empty($_SESSION[$geo->nameSession])) {
+        if (!Yii::$app->session->has($geo->nameSession)) {
 
 //            $cityName = $geo->getCity('46.147.142.190');
             $cityName = $geo->getCity();
 
             return $this->render('index', [
                 'city' => $cityName,
-                'allCities' => $allCities,
             ]);
         }
 
         return false;
     }
 
-
     /**
      * Сохранение города в сессию
      *
      * @return boolean
+     *
+     * @param string $city
+     * @param string $idCity
      */
-    public function actionSaveCity()
+    public function actionSaveCity($city, $idCity)
     {
         $geo = new Geo;
 
-        $city = Yii::$app->request->post('city');
-
-        if (isset($city))
-            if (strpos(file_get_contents(dirname(__DIR__) . '/geoip/russian_cities.txt'), $city)) {
-                $geo->saveCity($city);
-                return true;
-            }
+        if (isset($city) && in_array($city, $geo->russianCities())) {
+            $geo->saveCity($idCity);
+            return true;
+        }
 
         return false;
     }

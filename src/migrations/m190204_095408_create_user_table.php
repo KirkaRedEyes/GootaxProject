@@ -22,6 +22,17 @@ class m190204_095408_create_user_table extends Migration
             'password' => $this->string(),
             'date_create' => $this->integer(),
         ]);
+
+        // add foreign key for table `{{%user}}`
+        $this->addForeignKey(
+            '{{%fk-feedback_author_id-user_id}}',
+            '{{%feedback}}',
+            'author_id',
+            '{{%user}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
     }
 
     /**
@@ -29,6 +40,12 @@ class m190204_095408_create_user_table extends Migration
      */
     public function safeDown()
     {
+        // drops foreign key for table `{{%user}}`
+        $this->dropForeignKey(
+            '{{%fk-feedback_author_id-user_id}}',
+            '{{%feedback}}'
+        );
+
         $this->dropTable('{{%user}}');
     }
 }

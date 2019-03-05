@@ -4,11 +4,15 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+
+use app\modules\cities\models\City;
+use app\modules\cities\geoip\Geo;
 
 class SiteController extends Controller
 {
@@ -38,27 +42,6 @@ class SiteController extends Controller
         ];
     }
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function beforeAction($action) {
-        if ($action->id === 'index')
-            return parent::beforeAction($action);
-
-        if (!Yii::$app->session->has('city'))
-            return $this->redirect(['/']);
-
-        return parent::beforeAction($action);
-    }
-
-//    public function beforeAction($action) {
-//        if ($action == 'redirect') {
-//            $this->enableCsrfValidation = false;
-//        }
-//        return parent::beforeAction($action);
-//    }
-
     /**
      * {@inheritdoc}
      */
@@ -82,31 +65,19 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        if (!Yii::$app->session->has('city'))
+        $city = Yii::$app->params['nameSessionCity'];
+
+        if (!Yii::$app->session->has($city)) {
             return $this->redirect(['/cities/main']);
+        }
 
-        return $this->render('index');
-    }
+        return $this->redirect(['/reviews/main']);
 
-
-    /**
-     * Displays homepage.
-     *
-     * @return boolean
-     */
-//    public function actionCity()
-//    {
 //        $geo = new Geo;
-//
-//        $city = Yii::$app->request->post('city');
-//        if (isset($city))
-//            if (strpos(file_get_contents('../utils/geoip/russian_cities.txt'), $city)) {
-//                $geo->saveCity($city);
-//                return true;
-//            }
-//
-//        return false;
-//    }
+//        return $this->redirect('index', [
+//            'russianCities' => $geo->russianCities()
+//        ]);
+    }
 
     /**
      * Login action.

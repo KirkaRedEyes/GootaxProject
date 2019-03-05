@@ -55,8 +55,9 @@ class Geo
         $session = Yii::$app->session;
         $name = $this->nameSession;
 
-        if ($session->has($name))
+        if ($session->has($name)) {
             return $session->get($name);
+        }
 
         $geo = $this->getData($ip);
 
@@ -82,5 +83,21 @@ class Geo
     public function removeCity()
     {
         Yii::$app->session->remove($this->nameSession);
+    }
+
+    /**
+     * Все города россии
+     *
+     * @return array
+     */
+    public function russianCities()
+    {
+        $russianCities = [];
+        $file = fopen(__DIR__ . '/russian_cities.txt', 'r');
+        while (!feof($file)) {
+            $russianCities[] = trim(fgets($file));
+        }
+        fclose($file);
+        return $russianCities;
     }
 }

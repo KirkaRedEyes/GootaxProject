@@ -14,10 +14,9 @@ class m190204_095327_create_feedback_table extends Migration
     {
         $this->createTable('{{%feedback}}', [
             'id' => $this->primaryKey(),
-            'id_city' => $this->integer(),
-            'id_autor' => $this->integer(),
-            'title' => $this->string(),
-            'text' => $this->text(),
+            'author_id' => $this->integer(),
+            'title' => $this->string('100'),
+            'text' => $this->string(),
             'rating' => $this->tinyInteger('1'),
             'img' => $this->text(),
             'date_create' => $this->integer(),

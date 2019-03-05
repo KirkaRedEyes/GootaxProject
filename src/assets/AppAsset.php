@@ -23,7 +23,9 @@ class AppAsset extends AssetBundle
         'css/site.css',
     ];
     public $js = [
-        'js/geo.js'
+        'js/geo.js',
+        'js/ajax.js',
+        'js/feedback.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',
