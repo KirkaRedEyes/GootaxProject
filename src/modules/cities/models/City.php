@@ -2,6 +2,7 @@
 
 namespace app\modules\cities\models;
 
+use app\modules\reviews\models\CityFeedback;
 use Yii;
 use app\modules\reviews\models\Feedback;
 
@@ -16,14 +17,15 @@ class City extends \yii\db\ActiveRecord
 {
     /**
      * Свзяь с таблицей 'feedback' через промежуточную таблицу 'city_feedback'
+     * @throws \yii\base\InvalidConfigException
      */
     public function getReviews()
     {
-        return $this->hasMany(Feedback::className(), ['id' => 'feedback_id'])
+        return $this->hasMany(Feedback::class, ['id' => 'feedback_id'])
+            ->with('author')
             ->viaTable('city_feedback', ['city_id' => 'id'])
             ->orderBy('date_create DESC');
     }
-
 
     /**
      * {@inheritdoc}

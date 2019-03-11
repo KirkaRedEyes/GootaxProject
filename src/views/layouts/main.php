@@ -5,6 +5,7 @@
 /* @var array $this->params['allCities'] города хранящиеся в базе данных */
 
 use app\widgets\Alert;
+use yii\bootstrap\Modal;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -60,27 +61,31 @@ AppAsset::register($this);
                 ],
             ]);
         echo Html::endTag('div');
-
-        echo Nav::widget([
-            'options' => ['class' => 'navbar-nav navbar-right'],
-            'items' => //Yii::$app->user->isGuest
-                //? [['label' => 'Войти', 'url' => ['#']]]
-                //: [
-                [
-                    '<li><button type="button" class="create-feedback">Оставить отзыв</button></li>',
-                    ['label' => 'Мои отзывы', 'url' => ['#']],
-//                    '<li>'
-//                    . Html::beginForm(['#'], 'post')
-//                    . Html::submitButton(
-//                        'Выйти (' . Yii::$app->user->identity->username . ')',
-//                        ['class' => 'btn btn-link logout']
-//                    )
-//                    . Html::endForm()
-//                    . '</li>'
-                ],
-        ]);
     }
+
+    echo Nav::widget([
+        'options' => ['class' => 'navbar-nav navbar-right'],
+        'items' => Yii::$app->user->isGuest
+            ? [
+                ['label' => 'Войти', 'url' => ['/user/auth/login']],
+                ['label' => 'Зарегистрироваться', 'url' => ['/user/auth/signup']],
+            ]
+            : [
+                '<li><button type="button" class="create-feedback">Оставить отзыв</button></li>',
+                ['label' => 'Мои отзывы', 'url' => ['/reviews/main/user-reviews?id=' . Yii::$app->user->id]],
+                '<li>'
+                . Html::beginForm(['/user/auth/logout'], 'post')
+                . Html::submitButton(
+                    'Выйти (' . Yii::$app->user->identity->name . ')',
+                    ['class' => 'btn btn-link logout']
+                )
+                . Html::endForm()
+                . '</li>'
+            ]
+    ]);
+
     NavBar::end();
+    var_dump(Yii::$app->user->isGuest);
     ?>
 
     <div class="container">
@@ -90,6 +95,15 @@ AppAsset::register($this);
         <?= Alert::widget() ?>
         <?= $content ?>
     </div>
+    <?php Modal::begin([
+        'header' => '<h2></h2>',
+        'toggleButton' => [
+            'id' => 'btn-modal',
+            'style' => 'display:none',
+        ],
+    ]);
+
+    Modal::end(); ?>
 </div>
 
 <footer class="footer">

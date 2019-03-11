@@ -3,6 +3,7 @@
 namespace app\modules\reviews\models;
 
 
+use app\modules\user\models\User;
 use Yii;
 use app\modules\cities\models\City;
 
@@ -22,17 +23,17 @@ class Feedback extends \yii\db\ActiveRecord
     /**
      * @var boolean флаг для выполнения функции 'beforeSave'
      */
-    private $doAfterSave = true;
+    private $_doAfterSave = true;
 
     /**
      * @var array ID старых городов отзыва
      */
-    private $oldCityIds;
+    private $_oldCityIds;
 
     /**
      * @var array ID городов отзыва
      */
-    private $cityIds;
+    private $_cityIds;
 
     /**
      * {@inheritdoc}
@@ -43,12 +44,32 @@ class Feedback extends \yii\db\ActiveRecord
     }
 
     /**
+     * Связь с таблицей 'user'
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAuthor()
+    {
+        return $this->hasOne(User::class, ['id' => 'author_id']);
+    }
+
+
+    /**
+     * Свзяь с таблицей 'city' через промежуточную таблицу 'city_feedback'
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getCities()
+    {
+        return $this->hasMany(City::class, ['id' => 'city_id'])
+            ->viaTable('city_feedback', ['feedback_id' => 'id']);
+    }
+    /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['cityIds', 'title', 'text', 'rating'], 'required'],
             [['title', 'text', 'rating'], 'required'],
             [['author_id', 'date_create'], 'integer'],
             [['img'], 'file', 'extensions' => 'jpg,jpeg,png'],
@@ -56,6 +77,7 @@ class Feedback extends \yii\db\ActiveRecord
             [['text'], 'string', 'max' => 255],
             [['title'], 'string', 'max' => 100],
             [['cityIds'], 'each', 'rule' => ['string']],
+//            [['cityIds'], 'trim'],
         ];
     }
 
@@ -64,8 +86,8 @@ class Feedback extends \yii\db\ActiveRecord
      */
     public function afterFind()
     {
-        $this->cityIds = $this->_getCitiesFeedback($this->id);
-        $this->oldCityIds = $this->cityIds;
+        $this->_cityIds = $this->_getCitiesFeedback($this->id);
+        $this->_oldCityIds = $this->_cityIds;
 
         return parent::afterFind();
     }
@@ -79,6 +101,7 @@ class Feedback extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if ($insert) {
+            $this->author_id = Yii::$app->user->id;
             $this->date_create = time();
         }
 
@@ -96,7 +119,7 @@ class Feedback extends \yii\db\ActiveRecord
 
     public function afterSave($insert, $changedAttributes)
     {
-        if ($this->doAfterSave) {
+        if ($this->_doAfterSave) {
             $this->_addNewCity();
             $this->_addOrUpdateCityFeedback($insert);
         }
@@ -138,7 +161,7 @@ class Feedback extends \yii\db\ActiveRecord
      */
     public function setCityIds($ids)
     {
-        $this->cityIds = $ids;
+        $this->_cityIds = $ids;
     }
 
     /**
@@ -146,7 +169,7 @@ class Feedback extends \yii\db\ActiveRecord
      */
     public function getCityIds()
     {
-        return $this->cityIds;
+        return $this->_cityIds;
     }
 
     /**
@@ -154,7 +177,7 @@ class Feedback extends \yii\db\ActiveRecord
      */
     public function disableAfterSave()
     {
-        $this->doAfterSave = false;
+        $this->_doAfterSave = false;
     }
 
     /**
@@ -183,33 +206,39 @@ class Feedback extends \yii\db\ActiveRecord
 
     /**
      * Добавление в базу данных городов которых нет
+     *
+     * @return array|false
      */
     private function _addNewCity()
     {
-        $addNewCity = false;
-        $idCities = [];
+        if (!empty($this->_cityIds)) {
+            $addNewCity = false;
+            $idCities = [];
 
-        foreach ($this->cityIds as $city) {
-            if (!is_numeric($city)) {
-                $newCity = new City();
-                $newCity->name = $city;
+            foreach ($this->_cityIds as $city) {
+                if (!is_numeric($city)) {
+                    $newCity = new City();
+                    $newCity->name = $city;
 
-                if ($newCity->save()) {
-                    $idCities[] = $newCity->id;
-                    $addNewCity = true;
+                    if ($newCity->save()) {
+                        $idCities[] = $newCity->id;
+                        $addNewCity = true;
+                    }
+                } else {
+                    $idCities[] = $city;
                 }
-            } else {
-                $idCities[] = $city;
             }
+
+            $this->_cityIds = $idCities;
+
+            if ($addNewCity) {
+                $this->_clearCache();
+            }
+
+            return $addNewCity;
         }
 
-        $this->cityIds = $idCities;
-
-        if ($addNewCity) {
-            $this->_clearCache();
-        }
-
-        return $addNewCity;
+        return false;
     }
 
     /**
@@ -237,7 +266,7 @@ class Feedback extends \yii\db\ActiveRecord
     private function _deleteCityFeedback()
     {
         CityFeedback::deleteAll([
-            'city_id' => $this->oldCityIds,
+            'city_id' => $this->_oldCityIds,
             'feedback_id' => $this->id
         ]);
     }
@@ -249,17 +278,23 @@ class Feedback extends \yii\db\ActiveRecord
      */
     private function _addCityFeedback()
     {
-        $addRows = [];
-        foreach ($this->cityIds as $cityId) {
-            $addRows[] =  [
-                $cityId,
-                $this->id
-            ];
-        }
+        if (!empty($this->_cityIds)) {
+            $addRows = [];
+            foreach ($this->_cityIds as $cityId) {
+                $addRows[] = [
+                    $cityId,
+                    $this->id
+                ];
+            }
 
-        Yii::$app->db->createCommand()
-            ->batchInsert('city_feedback', ['city_id', 'feedback_id'], $addRows)
-            ->execute();
+            Yii::$app->db->createCommand()
+                ->batchInsert('city_feedback', ['city_id', 'feedback_id'], $addRows)
+                ->execute();
+        } else {
+            $cityFeedback = new CityFeedback();
+            $cityFeedback->feedback_id = $this->id;
+            $cityFeedback->save();
+        }
     }
 
     /**
@@ -308,7 +343,7 @@ class Feedback extends \yii\db\ActiveRecord
     {
         $arrReviews = CityFeedback::find()
             ->select('city_id')
-            ->where(['city_id' => $this->oldCityIds])
+            ->where(['city_id' => $this->_oldCityIds])
             ->asArray()
             ->all();
 
@@ -318,7 +353,7 @@ class Feedback extends \yii\db\ActiveRecord
         }
 
         $unnecessaryCity = [];
-        foreach ($this->oldCityIds as $cityId) {
+        foreach ($this->_oldCityIds as $cityId) {
             if (!in_array($cityId, $citiesIdWithReviews)) {
                 $unnecessaryCity[] = $cityId;
             }
@@ -340,12 +375,12 @@ class Feedback extends \yii\db\ActiveRecord
     /**
      * Удаление города из сессии
      *
-     * @param array|null $cityIds
+     * @param array|null $_cityIds
      */
-    private function _clearSessionCity($cityIds = null)
+    private function _clearSessionCity($_cityIds = null)
     {
         $city = Yii::$app->params['nameSessionCity'];
-        if (is_null($cityIds) || in_array(Yii::$app->session->get($city), $cityIds)){
+        if (is_null($_cityIds) || in_array(Yii::$app->session->get($city), $_cityIds)){
             Yii::$app->session->remove($city);
         }
     }

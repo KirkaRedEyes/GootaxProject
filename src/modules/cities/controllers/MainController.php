@@ -4,7 +4,6 @@ namespace app\modules\cities\controllers;
 
 use Yii;
 use yii\web\Controller;
-use yii\filters\VerbFilter;
 use app\modules\cities\geoip\Geo;
 
 /**
@@ -12,21 +11,6 @@ use app\modules\cities\geoip\Geo;
  */
 class MainController extends Controller
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'save-city' => ['post'],
-                ],
-            ],
-        ];
-    }
-
     /**
      * Получение города пользователя по IP
      *
@@ -38,11 +22,14 @@ class MainController extends Controller
 
         if (!Yii::$app->session->has($geo->nameSession)) {
 
-//            $cityName = $geo->getCity('46.147.142.190');
-            $cityName = $geo->getCity();
+            $cities = Yii::$app->cache->get(Yii::$app->params['nameCacheCities']);
+            $cityName = $geo->getCity('46.147.142.190');
+//            $cityName = $geo->getCity();
+            $cityId = array_search($cityName, $cities);
 
             return $this->render('index', [
                 'city' => $cityName,
+                'cityId' => $cityId
             ]);
         }
 
@@ -57,12 +44,12 @@ class MainController extends Controller
      * @param string $city
      * @param string $idCity
      */
-    public function actionSaveCity($city, $idCity)
+    public function actionSetCity($city, $idCity)
     {
         $geo = new Geo;
 
         if (isset($city) && in_array($city, $geo->russianCities())) {
-            $geo->saveCity($idCity);
+            $geo->setCity($idCity);
             return true;
         }
 

@@ -4,26 +4,34 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use kartik\select2\Select2;
 
-//$this->registerJsFile('@web/js/feedback.js',
-//    ['depends' => [\yii\web\JqueryAsset::class]]);
-
 /* @var $this yii\web\View */
 /* @var $model app\modules\reviews\models\Feedback */
 /* @var $form yii\widgets\ActiveForm */
 /* @var array $allCities города России */
+/* @var string|null $geoCity город найденый по geoIp */
+
+$action = '';
+if (isset($geoCity)) {
+    $model->setCityIds([$geoCity]);
+    $action = '/reviews/main/create?city=' . $geoCity;
+}
 ?>
 
 <div class="main-form">
 
-    <?php $form = ActiveForm::begin(['id' => 'form-feedback']); ?>
+    <?php $form = ActiveForm::begin([
+        'id' => 'form-feedback',
+        'action' => $action
+    ]); ?>
 
     <?= $form->field($model, 'cityIds')->widget(Select2::class, [
         'name' => 'kv_lang_select1',
         'language' => 'ru',
         'data' => $allCities,
+        'value' => 'Ижевск',
         'showToggleAll' => false,
         'options' => [
-            'placeholder' => 'Выберите город ...',
+            'placeholder' => 'для всех городов',
             'multiple' => true,
         ],
         'pluginOptions' => [

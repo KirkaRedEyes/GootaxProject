@@ -3,10 +3,11 @@ $(function() {
 
     /* Создание отзыва */
     $body.on('click', '.create-feedback', function () {
-        ajaxFeedback('create');
+        let city = ($(this).data('city')) ? $(this).data('city') : null;
+        ajaxFeedback('create', null, city);
     });
 
-    /* Добавление и редактирование отзыва */
+    /* Редактирование отзыва */
     $body.on('click', '.update-feedback', function () {
         let id = $(this).data('id');
         ajaxFeedback('update', id);
@@ -18,22 +19,48 @@ $(function() {
         ajaxFeedback('delete', id);
     });
 
-    /* ajax запрос для выполнения action отзыва */
-    function ajaxFeedback (action, id = null) {
-        let srcId = (id === null) ? '' : '?id=' + id;
+    /* Информация о пользователе */
+    $body.on('click', '.user-info', function () {
+        let id = $(this).data('id'),
+            fio = $(this).text();
+        ajaxAuthor(id, fio);
+    });
 
-        $.post('/reviews/main/' + action + srcId, function(res) {
+    /* ajax запрос для выполнения action отзыва */
+    function ajaxFeedback (action, id = null, city = null) {
+        let srcId = (id === null) ? '' : '?id=' + id,
+            srcCity = (city === null) ? '' : '?city=' + city;
+
+        $.post('/reviews/main/' + action + srcId + srcCity, function(res) {
             if (res) {
                 if (action === 'delete') {
                     $('#review-' + id).remove();
                 } else {
-                    $('.modal-header').find('h2').html(
-                        (action === 'create') ? 'Создание' : 'Редактирование'
+                    modalCreate(
+                        (action === 'create') ? 'Создание' : 'Редактирование',
+                        res
                     );
-                    $('.modal-body').html(res);
-                    $('#btn-modal').click();
                 }
             }
         });
+    }
+
+    /* ajax запрос для получения ифнормации о пользователе */
+    function ajaxAuthor (id, fio) {
+        $.post('/reviews/main/user-info?id=' + id, function(res) {
+            if (res) {
+                let body = `<p>Email: ${res.email}</p>` +
+                    `<p>Телефон: ${res.phone}</p>` +
+                    `<a href="/reviews/main/user-reviews?id=${res.id}">Посмотреть отзывы</a>`;
+                modalCreate(fio, body);
+            }
+        }, 'json');
+    }
+
+    /* заполняем модель */
+    function modalCreate(header, body) {
+        $('.modal-header').find('h2').html(header);
+        $('.modal-body').html(body);
+        $('#btn-modal').click();
     }
 });

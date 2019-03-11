@@ -1,62 +1,74 @@
 <?php
 /* @var $this yii\web\View */
-/* @var array $reviews отзывы города */
+/* @var array $reviews отзывы */
 
-use yii\bootstrap\Modal;
 use yii\helpers\Html;
-
-//echo '<pre>';
-//print_r($reviews);
-//echo '</pre>';die();
 
 $this->title = 'Страница отзывов';
 ?>
 <div class="reviews">
-    <?php foreach ($reviews['reviews'] as $review): ?>
-        <div id="review-<?= $review['id'] ?>" class="review" data-id="<?= $review['id'] ?>">
+    <?php foreach ($reviews as $review):
+        $feedback = (isset($review['cities'])) ? $review : $review['feedback'];
+        ?>
+        <div id="review-<?= $feedback['id'] ?>" class="review" data-id="<?= $feedback['id'] ?>">
             <div class="title-review">
-                <span class="title-text"><?= $review['title'] ?></span>
-                <div class="action-review">
-                    <button type="button" data-id="<?= $review['id'] ?>"
-                            class="img-btn glyphicon glyphicon-pencil update-feedback"
-                            title="Редактировать">
-                    </button>
-                    <button type="button" data-id="<?= $review['id'] ?>"
-                       class="img-btn glyphicon glyphicon-trash delete-feedback"
-                       title="Удалить"
-                       data-confirm="Вы уверены, что хотите удалить этот элемент?">
-                    </button>
-                </div>
+                <span class="title-text"><?= $feedback['title'] ?></span>
+                <?php if (Yii::$app->user->id == $feedback['author']['id']): ?>
+                    <div class="action-review">
+                        <button type="button" data-id="<?= $feedback['id'] ?>"
+                                class="img-btn glyphicon glyphicon-pencil update-feedback"
+                                title="Редактировать">
+                        </button>
+                        <button type="button" data-id="<?= $feedback['id'] ?>"
+                           class="img-btn glyphicon glyphicon-trash delete-feedback"
+                           title="Удалить"
+                           data-confirm="Вы уверены, что хотите удалить этот элемент?">
+                        </button>
+                    </div>
+                <?php endif; ?>
                 <span class="time-review">
-                    <?= Yii::$app->formatter->format($review['date_create'], 'date') ?>
+                    <?= Yii::$app->formatter->format($feedback['date_create'], 'date') ?>
                 </span>
             </div>
             <div class="body-review">
                 <div class="body-text">
-                    <?= $review['text'] ?>
+                    <?= $feedback['text'] ?>
                 </div>
-                <?php if (isset($review['img']) && !empty($review['img'])): ?>
+                <?php if (isset($feedback['img']) && !empty($feedback['img'])): ?>
                     <div class="body-img">
-                        <a href="/<?= $review['img'] ?>">
-                            <img src="/<?= $review['img'] ?>" width="200" alt="">
+                        <a href="/<?= $feedback['img'] ?>">
+                            <img src="/<?= $feedback['img'] ?>" width="200" alt="">
                         </a>
                     </div>
                 <?php endif; ?>
             </div>
             <div class="footer-review">
-                <span class="footer-name"><?= $reviews['name'] ?></span>
-                <span>рейтинг: <span class="footer-rating"><?= $review['rating'] ?></span></span>
-                <span>Автор: <span class="footer-author_id"><?= $review['author_id'] ?></span></span>
+                <div class="footer-info">
+                    <span>рейтинг: <span class="footer-rating"><?= $feedback['rating'] ?></span></span>
+                    <?php
+                    $author = $feedback['author']['surname'] . ' ' .  $feedback['author']['name'] . ' ' .  $feedback['author']['middle_name'];
+                    if (Yii::$app->user->isGuest): ?>
+                        <div><?= $author ?></div>
+                    <?php else: ?>
+                        <button type="button" class="user-info" data-id="<?= $feedback['author']['id'] ?>">
+                            <?= $author ?>
+                        </button>
+                    <?php endif; ?>
+                </div>
+                <?php if (isset($feedback['cities'])) {
+                    $strCities = '';
+
+                    foreach ($feedback['cities'] as $city) {
+                        $strCities .= $city['name'] . ' ';
+                    }
+
+                    if (empty($strCities)) {
+                        $strCities = 'для всех городов';
+                    }
+
+                    echo Html::tag('div', $strCities, ['class' => 'footer-cities']);
+                } ?>
             </div>
         </div>
     <?php endforeach; ?>
 </div>
-<?php Modal::begin([
-    'header' => '<h2></h2>',
-    'toggleButton' => [
-        'id' => 'btn-modal',
-        'style' => 'display:none',
-    ],
-]);
-
- Modal::end(); ?>

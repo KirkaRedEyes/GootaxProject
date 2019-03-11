@@ -18,7 +18,6 @@ $config = [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'qIQO55UEM484TxojqjXPO_Kpbyeq3cXI',
             'baseUrl' => '',
-
         ],
         'session' => [
             'class' => 'yii\web\Session',
@@ -28,7 +27,7 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            'identityClass' => 'app\modules\user\models\User',
             'enableAutoLogin' => true,
         ],
         'errorHandler' => [
@@ -72,6 +71,9 @@ $config = [
         'reviews' => [
             'class' => 'app\modules\reviews\Module',
         ],
+        'user' => [
+            'class' => 'app\modules\user\Module',
+        ],
     ],
     'on beforeAction' => function ($event) {
         /* Записываем города в кэш */
@@ -83,15 +85,6 @@ $config = [
                 ->all();
             return yii\helpers\ArrayHelper::map($tableCities, 'id', 'name');
         });
-
-        /* Если в сессии нет города перенаправляем на главную */
-        $city = Yii::$app->params['nameSessionCity'];
-        if (!Yii::$app->session->has($city)) {
-            if ($event->action->id !== 'index' &&
-                $event->action->controller->id !== 'site') {
-                Yii::$app->response->redirect(['/']);
-            }
-        }
     },
     'params' => $params,
 ];
@@ -109,7 +102,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        'allowedIPs' => ['192.168.99.1', '::1'],
+        //'allowedIPs' => ['192.168.99.1', '::1'],
     ];
 }
 

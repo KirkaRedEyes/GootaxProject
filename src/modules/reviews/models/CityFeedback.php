@@ -3,7 +3,6 @@
 namespace app\modules\reviews\models;
 
 use app\modules\cities\models\City;
-use Yii;
 
 /**
  * This is the model class for table "city_feedback".
@@ -30,10 +29,10 @@ class CityFeedback extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['city_id', 'feedback_id'], 'required'],
+            [['feedback_id'], 'required'],
             [['city_id', 'feedback_id'], 'integer'],
-            [['city_id'], 'exist', 'skipOnError' => true, 'targetClass' => City::className(), 'targetAttribute' => ['city_id' => 'id']],
-            [['feedback_id'], 'exist', 'skipOnError' => true, 'targetClass' => Feedback::className(), 'targetAttribute' => ['feedback_id' => 'id']],
+            [['city_id'], 'exist', 'skipOnError' => true, 'targetClass' => City::class, 'targetAttribute' => ['city_id' => 'id']],
+            [['feedback_id'], 'exist', 'skipOnError' => true, 'targetClass' => Feedback::class, 'targetAttribute' => ['feedback_id' => 'id']],
         ];
     }
 
@@ -53,7 +52,7 @@ class CityFeedback extends \yii\db\ActiveRecord
      */
     public function getCity()
     {
-        return $this->hasOne(City::className(), ['id' => 'city_id']);
+        return $this->hasOne(City::class, ['id' => 'city_id']);
     }
 
     /**
@@ -61,6 +60,7 @@ class CityFeedback extends \yii\db\ActiveRecord
      */
     public function getFeedback()
     {
-        return $this->hasOne(Feedback::className(), ['id' => 'feedback_id']);
+        return $this->hasOne(Feedback::class, ['id' => 'feedback_id'])
+            ->with('author');
     }
 }

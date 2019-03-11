@@ -186,11 +186,20 @@ a.desc:after {
     margin: 10px 0;
 }
 .footer-review {
-    display: flex;
     padding-top: 10px;
     font-size: 0.8em;
     color: #acacac;
+}
+.footer-review .footer-info {
+    display: flex;
     justify-content: space-between;
+}
+.footer-review .footer-cities {
+    text-align: center;
+}
+.user-info {
+    border: none;
+    background-color: white;
 }
 .time-review {
     font-size: 0.5em;
@@ -218,6 +227,7 @@ a.desc:after {
 .img-btn:hover {
     color: #32508c;
 }
-.img-btn:focus {
+.img-btn:focus,
+.user-info:focus {
     outline: none;
 }

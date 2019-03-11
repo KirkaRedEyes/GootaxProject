@@ -1,7 +1,7 @@
 <?php
 /* @var $this yii\web\View */
 /* @var string $city город пользователя */
-/* @var array $allCities города хранящиеся в базе данных */
+/* @var integer|false $cityId ID города */
 
 use kartik\select2\Select2;
 
@@ -14,7 +14,17 @@ $this->title = 'Определение города';
     <div class="layer-body">
         <p style="font-size: 1.2em">"<?= $city ?>" ваш город?</p>
         <div>
-            <button class="btn btn-success btn-city" data-city="<?= $city ?>" style="margin-right: 30px">Да</button>
+            <?php if ($cityId): ?>
+                <button class="btn btn-success btn-city"
+                    data-city="<?= $city ?>"
+                    data-id="<?= $cityId ?>"
+                    style="margin-right: 30px">Да</button>
+            <?php else: ?>
+                <button class="btn btn-success btn-no-city"
+                        data-city="<?= $city ?>"
+                        data-guest="<?= Yii::$app->user->isGuest ?>"
+                        style="margin-right: 30px">Да</button>
+            <?php endif; ?>
             <button class="btn btn-danger btn-no">Нет</button>
         </div>
     </div>

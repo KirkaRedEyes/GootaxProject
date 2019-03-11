@@ -2,16 +2,19 @@
 
 namespace app\modules\reviews\controllers;
 
+use app\modules\reviews\models\CityFeedback;
 use Yii;
+use yii\filters\AccessControl;
+use yii\helpers\Json;
 use yii\web\Controller;
 use app\models\FileUpload;
 use app\modules\cities\geoip\Geo;
 use app\modules\cities\models\City;
 use app\modules\reviews\models\Feedback;
-use app\modules\reviews\models\CityFeedback;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\UploadedFile;
+use app\modules\user\models\User;
 
 /**
  * Main controller for the `reviews` module
@@ -24,11 +27,29 @@ class MainController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::class,
+                'only' => [
+                    'update', 'create', 'delete',
+                    'delete-image', 'user-reviews', 'user-info'
+                ],
+                'rules' => [
+                    [
+                        'actions' => [
+                            'update', 'create', 'delete',
+                            'delete-image', 'user-reviews', 'user-info'
+                        ],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['POST'],
-                    'delete-image' => ['POST'],
+                    'delete' => ['post'],
+                    'delete-image' => ['post'],
+                    'user-info' => ['post'],
                 ],
             ],
         ];
@@ -41,27 +62,26 @@ class MainController extends Controller
      */
     public function actionIndex()
     {
-//        unset($_SESSION['city']);
-
-        $reviews = $this->_getReviews();
+        $reviews = $this->_getCityReviews();
         if ($reviews) {
             return $this->render('index', [
                 'reviews' => $reviews,
             ]);
         }
 
-        return Yii::$app->response->redirect(['/']);
+        return $this->goHome();
     }
 
     /**
      * Creates a new Feedback model.
      * If creation is successful, the browser will be redirected to the 'view' page.
+     * @param null|string $city
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionCreate()
+    public function actionCreate($city = null)
     {
-        return $this->_createOrUpdateFeedback('create');
+        return $this->_createOrUpdateFeedback('create', null, $city);
     }
 
     /**
@@ -87,6 +107,10 @@ class MainController extends Controller
     {
         $model = $this->findModel($id);
 
+        if (Yii::$app->user->id !== $model->author_id) {
+            return false;
+        }
+
         $uploadModel = new FileUpload();
         $uploadModel->deleteCurrentImage($model->img);
 
@@ -102,6 +126,11 @@ class MainController extends Controller
     public function actionDeleteImage($id)
     {
         $model = $this->findModel($id);
+
+        if (Yii::$app->user->id !== $model->author_id) {
+            return false;
+        }
+
         $pathImg = $model->img;
         $uploadModel = new FileUpload();
 
@@ -110,6 +139,44 @@ class MainController extends Controller
         if ($model->save(false)) {
             $uploadModel->deleteCurrentImage($pathImg);
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Отзывы пользователя
+     *
+     * @param integer|string $id
+     * @return string
+     */
+    public function actionUserReviews($id)
+    {
+        $reviews = $this->_getUserReviews($id);
+        if ($reviews) {
+            return $this->render('index', [
+                'reviews' => $reviews,
+            ]);
+        }
+
+        return $this->goHome();
+    }
+
+    /**
+     * Информация о пользователе
+     *
+     * @param integer|string $id
+     * @return false|json
+     */
+    public function actionUserInfo($id)
+    {
+        if (!Yii::$app->user->isGuest) {
+            $user = User::find()
+                ->where(['id' => $id])
+                ->asArray()
+                ->one();
+
+            return json_encode($user);
         }
 
         return false;
@@ -136,15 +203,23 @@ class MainController extends Controller
      *
      * @param string $action
      * @param string $id
+     * @param null|string $geoCity
      * @return mixed
      * @throws NotFoundHttpException
      */
-    private function _createOrUpdateFeedback($action, $id = null)
+    private function _createOrUpdateFeedback($action, $id = null, $geoCity = null)
     {
-        $model = ($action === 'create') ? new Feedback() : $this->findModel($id);
+        if ($action === 'create') {
+            $model = new Feedback();
+        } else {
+            $model = $this->findModel($id);
+
+            if (Yii::$app->user->id !== $model->author_id) {
+                return false;
+            }
+        }
 
         if ($model->load(Yii::$app->request->post())) {
-//            print_r($model);die;
             $file = UploadedFile::getInstance($model, 'img');
 
             if (isset($file)) {
@@ -152,20 +227,37 @@ class MainController extends Controller
             }
 
             if ($model->save()) {
-                $nameSessionCity = Yii::$app->params['nameSessionCity'];
-                $sessionId = Yii::$app->session->get($nameSessionCity);
+                if (isset($geoCity)) {
+                    $cityId = City::find()
+                        ->where(['name' => $geoCity])
+                        ->one();
 
-                $atributes = $model->getAttributes();
-                $atributes['show'] = (in_array($sessionId, $model->getCityIds())) ? true : false;
-                $atributes['action'] = $action;
+                    if (isset($cityId)) {
+                        $geo = new Geo();
+                        $geo->setCity($cityId->id);
+                    }
 
-                return json_encode($atributes);
+                    return $this->goHome();
+                } else {
+                    $nameSessionCity = Yii::$app->params['nameSessionCity'];
+                    $sessionId = Yii::$app->session->get($nameSessionCity);
+                    $identityUser = Yii::$app->user->identity;
+
+                    $atributes = $model->getAttributes();
+                    $atributes['action'] = $action;
+                    $atributes['author'] = $identityUser->surname . ' ' . $identityUser->name . ' ' . $identityUser->middle_name;
+                    $atributes['show'] = (empty($model->getCityIds()) || in_array($sessionId, $model->getCityIds()))
+                        ? true : false;
+
+                    return json_encode($atributes);
+                }
             }
         }
 
         return $this->renderAjax('_form', [
             'model' => $model,
             'allCities' => $this->_getAllCities(),
+            'geoCity' => $geoCity,
         ]);
     }
 
@@ -188,18 +280,41 @@ class MainController extends Controller
      *
      * @return array|boolean
      */
-    private function _getReviews()
+    private function _getCityReviews()
     {
         $cityId = Yii::$app->session->get(Yii::$app->params['nameSessionCity']);
 
         if (isset($cityId)) {
-            $reviews = City::find()
-                ->with('reviews')
-                ->where(['id' => $cityId])
+            $reviews = CityFeedback::find()
+                ->with(['city', 'feedback'])
+                ->where(['city_id' => $cityId])
+                ->orWhere(['city_id' => null])
                 ->asArray()
                 ->all();
 
-            return $reviews[0];
+            return array_reverse($reviews);
+        }
+
+        return false;
+    }
+
+    /**
+     * Отзывы пользователя
+     *
+     * @param integer|string $id
+     * @return array|boolean
+     */
+    private function _getUserReviews($id)
+    {
+        if (!Yii::$app->user->isGuest) {
+            $reviews = Feedback::find()
+                ->with(['author', 'cities'])
+                ->where(['author_id' => $id])
+                ->orderBy('date_create DESC')
+                ->asArray()
+                ->all();
+
+            return $reviews;
         }
 
         return false;

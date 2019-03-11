@@ -81,11 +81,10 @@ $(function() {
                         `<div class="body-text">${attr.text}</div>` +
                         htmlImg +
                     `</div>` +
-                    `<div class="footer-review">` +
-                        `<span class="footer-name">${$city}</span>` +
+                    `<div class="footer-review"><div class="footer-info">` +
                         `<span>рейтинг: <span class="footer-rating">${attr.rating}</span></span>` +
-                        `<span>Автор: <span class="footer-author_id"><?= ${attr.author_id}</span></span>` +
-                    `</div></div>`)
+                        `<button type="button" class="user-info" data-id="${attr.author_id}">${attr.author}</button>` +
+                    `</div></div></div>`)
             } else {
                 let $id = $('#review-' + attr.id);
 

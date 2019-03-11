@@ -70,11 +70,11 @@ class Geo
     /**
      * Сохранение города в сессию
      *
-     * @param string $city наименование города
+     * @param string $cityId ID города
      */
-    public function saveCity($city)
+    public function setCity($cityId)
     {
-        Yii::$app->session->set($this->nameSession, $city);
+        Yii::$app->session->set($this->nameSession, $cityId);
     }
 
     /**
