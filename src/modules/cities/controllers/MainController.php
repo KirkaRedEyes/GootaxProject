@@ -23,8 +23,9 @@ class MainController extends Controller
         if (!Yii::$app->session->has($geo->nameSession)) {
 
             $cities = Yii::$app->cache->get(Yii::$app->params['nameCacheCities']);
-            $cityName = $geo->getCity('46.147.142.190');
-//            $cityName = $geo->getCity();
+            
+//             $cityName = $geo->getCity('46.147.142.190'); // IP ижевска, для проверки работы GEO
+            $cityName = $geo->getCity();
             $cityId = array_search($cityName, $cities);
 
             return $this->render('index', [

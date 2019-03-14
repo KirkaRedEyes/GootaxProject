@@ -25,8 +25,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-    command: --innodb-use-native-aio=0
-#    command: --innodb-use-native-aio=0 --character-set-server=utf8 --collation-server=utf8_general_ci
+    command: --innodb-use-native-aio=0 --character-set-server=utf8 --collation-server=utf8_general_ci
 
   phpmyadmin:
     container_name: gtx_phpmyadmin
