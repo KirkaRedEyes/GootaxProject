@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'adminEmail' => 'admin@gtx.izh',
+    'adminEmail' => 'gtxproject18@gmail.com',
     'nameCacheCities' => 'cities',
     'nameSessionCity' => 'city',
 ];
