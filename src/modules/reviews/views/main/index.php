@@ -12,7 +12,7 @@ $this->title = 'Страница отзывов';
         ?>
         <div id="review-<?= $feedback['id'] ?>" class="review" data-id="<?= $feedback['id'] ?>">
             <div class="title-review">
-                <span class="title-text"><?= $feedback['title'] ?></span>
+                <span class="title-text"><?= Html::encode($feedback['title']) ?></span>
                 <?php if (Yii::$app->user->id == $feedback['author']['id']): ?>
                     <div class="action-review">
                         <button type="button" data-id="<?= $feedback['id'] ?>"
@@ -21,8 +21,7 @@ $this->title = 'Страница отзывов';
                         </button>
                         <button type="button" data-id="<?= $feedback['id'] ?>"
                            class="img-btn glyphicon glyphicon-trash delete-feedback"
-                           title="Удалить"
-                           data-confirm="Вы уверены, что хотите удалить этот элемент?">
+                           title="Удалить">
                         </button>
                     </div>
                 <?php endif; ?>
@@ -32,7 +31,7 @@ $this->title = 'Страница отзывов';
             </div>
             <div class="body-review">
                 <div class="body-text">
-                    <?= $feedback['text'] ?>
+                    <?= Html::encode($feedback['text']) ?>
                 </div>
                 <?php if (isset($feedback['img']) && !empty($feedback['img'])): ?>
                     <div class="body-img">
@@ -48,10 +47,10 @@ $this->title = 'Страница отзывов';
                     <?php
                     $author = $feedback['author']['surname'] . ' ' .  $feedback['author']['name'] . ' ' .  $feedback['author']['middle_name'];
                     if (Yii::$app->user->isGuest): ?>
-                        <div><?= $author ?></div>
+                        <div><?= Html::encode($author) ?></div>
                     <?php else: ?>
                         <button type="button" class="user-info" data-id="<?= $feedback['author']['id'] ?>">
-                            <?= $author ?>
+                            <?= Html::encode($author) ?>
                         </button>
                     <?php endif; ?>
                 </div>

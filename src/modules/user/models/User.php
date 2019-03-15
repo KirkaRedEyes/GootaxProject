@@ -81,14 +81,18 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public function beforeSave($insert)
     {
-        if ($insert) {
-            $this->password = Yii::$app->getSecurity()->generatePasswordHash($this->password);
-            $this->email_confirm_token = Yii::$app->security->generateRandomString();
-            $this->status = User::STATUS_WAIT;
-            $this->date_create = time();
+        if (parent::beforeSave($insert)) {
+            if ($insert) {
+                $this->password = Yii::$app->getSecurity()->generatePasswordHash($this->password);
+                $this->email_confirm_token = Yii::$app->security->generateRandomString();
+                $this->status = User::STATUS_WAIT;
+                $this->date_create = time();
+            }
+
+            return true;
         }
 
-        return parent::beforeSave($insert);
+        return false;
     }
 
     /**

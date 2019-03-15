@@ -22,7 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($model, 'middle_name')->textInput() ?>
 
-        <?= $form->field($model, 'email')->textInput() ?>
+        <?= $form->field($model, 'email')->textInput(['placeholder' => 'Настроен SMTP. Вводить существующий E-mail!']) ?>
 
         <?= $form->field($model, 'phone')->textInput([
                 'placeholder' => '81234567890'

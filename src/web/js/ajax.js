@@ -15,8 +15,11 @@ $(function() {
 
     /* Удаление отзыва */
     $body.on('click', '.delete-feedback', function () {
-        let id = $(this).data('id');
-        ajaxFeedback('delete', id);
+        if (confirm('Вы уверены, что хотите удалить этот отзыв?')) {
+            let id = $(this).data('id');
+
+            ajaxFeedback('delete', id);
+        }
     });
 
     /* Информация о пользователе */
@@ -59,7 +62,7 @@ $(function() {
 
     /* заполняем модель */
     function modalCreate(header, body) {
-        $('.modal-header').find('h2').html(header);
+        $('.modal-header').find('h2').text(header);
         $('.modal-body').html(body);
         $('#btn-modal').click();
     }

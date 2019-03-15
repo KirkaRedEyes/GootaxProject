@@ -266,7 +266,6 @@ class Feedback extends \yii\db\ActiveRecord
     private function _deleteCityFeedback()
     {
         CityFeedback::deleteAll([
-            'city_id' => $this->_oldCityIds,
             'feedback_id' => $this->id
         ]);
     }
